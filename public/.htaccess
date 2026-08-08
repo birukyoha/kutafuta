@@ -1,0 +1,29 @@
+# ==============================================================================
+# Apache Rewrite Rules for KutafutaTalent Single Page Application (SPA) & PHP API
+# cPanel Shared Hosting Deployment Configuration
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Route API requests to PHP Router Controller
+  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+  # 2. Redirect all non-file/non-directory client SPA routes to index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# MIME Types & Compression Optimization
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+</IfModule>

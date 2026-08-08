@@ -1,0 +1,6 @@
+{
+  "name": "kutafutatalent",
+  "description": "Kutafutatalent is a marketplace for film, media, cast, and crew members. Connects creative crew and cast (actors, models, dancers) with directors, producers, and agencies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
