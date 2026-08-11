@@ -1,0 +1,14 @@
+<?php
+// ============================================================
+// KutafutaTalent — Bluehost MySQL Database Configuration
+// File: /public_html/db_config.php
+//
+// 1. Log in to Bluehost cPanel -> MySQL Databases
+// 2. Note your DB Name, DB User, and DB Password
+// 3. Replace the values below with your actual cPanel MySQL credentials
+// ============================================================
+
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'xpbvymmy_kutafuta');  // Replace with your cPanel database name
+define('DB_USER', 'xpbvymmy_dbuser');    // Replace with your cPanel database username
+define('DB_PASS', 'YOUR_STRONG_PASSWORD_HERE'); // Replace with your cPanel database password

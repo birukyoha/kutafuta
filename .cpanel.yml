@@ -1,5 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home1/xpbvymmy/public_html/website_419033d0
+    - export DEPLOYPATH=/home1/xpbvymmy/public_html/kutafutatalent.com
     - /bin/cp -R * $DEPLOYPATH
+

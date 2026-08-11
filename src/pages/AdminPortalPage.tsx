@@ -90,6 +90,7 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
   const [activeCollection, setActiveCollection] = useState<CollectionKey>('users');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [records, setRecords] = useState<any[]>([]);
+  const [dbEngineLabel, setDbEngineLabel] = useState<string>('Memory / JSON Store');
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -222,12 +223,14 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
         return;
       }
       const data = await res.json();
-      if (data && data.success && Array.isArray(data.records) && data.records.length > 0) {
-        // Server has live data — persist it locally and use it
+      if (data && data.success && Array.isArray(data.records)) {
+        // Server has live MySQL data
+        setDbEngineLabel('MySQL (Bluehost)');
         persistToLocalStorage(collectionKey, data.records);
         setRecords(data.records);
       } else {
-        // Server has no data — check localStorage first, then seeds
+        // Server returned invalid structure — fallback to localStorage or seeds
+        setDbEngineLabel('Browser Storage (Offline)');
         const local = loadFromLocalStorage(collectionKey);
         if (local) {
           setRecords(local);
@@ -239,6 +242,7 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
       }
     } catch (err) {
       console.warn(`Failed to fetch ${collectionKey} API records, loading from localStorage:`, err);
+      setDbEngineLabel('Browser Storage (Offline)');
       const local = loadFromLocalStorage(collectionKey);
       if (local) {
         setRecords(local);
@@ -1196,7 +1200,9 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
               <div className="flex items-center gap-1.5 text-[0.65rem] font-mono-code uppercase text-slate-400 font-bold">
                 <Cpu className="w-3.5 h-3.5" /> DB Engine
               </div>
-              <div className="text-xs font-bold font-mono-code mt-0.5 truncate">Memory / JSON Store</div>
+              <div className={`text-xs font-bold font-mono-code mt-0.5 truncate ${dbEngineLabel.includes('MySQL') ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {dbEngineLabel}
+              </div>
             </div>
 
             <div className={`p-3 rounded-xl border ${isDaylight ? 'bg-slate-50 border-slate-200' : 'bg-[#181a20] border-[#f8f7f4]/10'}`}>

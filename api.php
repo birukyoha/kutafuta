@@ -13,10 +13,15 @@
 //   4. Done — tables are auto-created on first request
 // ============================================================
 
-define('DB_HOST', 'localhost');                      // Always 'localhost' on Bluehost
-define('DB_NAME', 'YOUR_CPANEL_USERNAME_kutafuta');  // e.g. johdoe_kutafuta
-define('DB_USER', 'YOUR_CPANEL_USERNAME_dbuser');    // e.g. johdoe_dbuser
-define('DB_PASS', 'YOUR_STRONG_PASSWORD_HERE');      // your chosen password
+// Load external DB configuration if db_config.php exists
+if (file_exists(__DIR__ . '/db_config.php')) {
+    require_once __DIR__ . '/db_config.php';
+}
+
+if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
+if (!defined('DB_NAME')) define('DB_NAME', 'xpbvymmy_Kutafutatalent');  // Bluehost DB name
+if (!defined('DB_USER')) define('DB_USER', 'xpbvymmy_dbuser');           // Bluehost DB user
+if (!defined('DB_PASS')) define('DB_PASS', 'YOUR_STRONG_PASSWORD_HERE'); // Your chosen password in cPanel MySQL
 
 // ============================================================
 // CORS & Headers
@@ -37,6 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 function getDB() {
     static $pdo = null;
     if ($pdo === null) {
+        if (DB_PASS === 'YOUR_STRONG_PASSWORD_HERE') {
+            jsonError('Database connection unconfigured: Please update DB_PASS in api.php or db_config.php with your Bluehost MySQL password.', 500);
+        }
         try {
             $pdo = new PDO(
                 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
@@ -45,7 +53,7 @@ function getDB() {
             );
             createTablesIfNeeded($pdo);
         } catch (PDOException $e) {
-            jsonError('Database connection failed: ' . $e->getMessage(), 500);
+            jsonError('Database connection failed: ' . $e->getMessage() . ' (DB_NAME=' . DB_NAME . ', DB_USER=' . DB_USER . ')', 500);
         }
     }
     return $pdo;
@@ -291,13 +299,43 @@ if($method==='POST'&&$route==='/admin/login'){
 // GET /admin/stats
 if($method==='GET'&&$route==='/admin/stats'){
     requireAdmin(); $db=getDB();
+    $totalUsers    = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    $totalTalents  = (int)$db->query("SELECT COUNT(*) FROM talent_profiles")->fetchColumn();
+    $totalClients  = (int)$db->query("SELECT COUNT(*) FROM client_profiles")->fetchColumn();
+    $totalJobs     = (int)$db->query("SELECT COUNT(*) FROM jobs")->fetchColumn();
+    $totalApps     = (int)$db->query("SELECT COUNT(*) FROM job_applications")->fetchColumn();
+    $totalCrewCalls= (int)$db->query("SELECT COUNT(*) FROM crew_calls")->fetchColumn();
+    $totalMedia    = (int)$db->query("SELECT COUNT(*) FROM talent_media")->fetchColumn();
+    $rolesRow      = $db->query("SELECT role, COUNT(*) as cnt FROM users GROUP BY role")->fetchAll();
+    $roles         = ['talents'=>0,'clients'=>0,'admins'=>0];
+    foreach($rolesRow as $r){
+        if($r['role']==='talent')  $roles['talents']=$r['cnt'];
+        if($r['role']==='client')  $roles['clients']=$r['cnt'];
+        if($r['role']==='admin')   $roles['admins'] =$r['cnt'];
+    }
+    $openJobs      = (int)$db->query("SELECT COUNT(*) FROM jobs WHERE status='open'")->fetchColumn();
+    $closedJobs    = $totalJobs - $openJobs;
     jsonResponse(['success'=>true,'stats'=>[
-        'totalUsers'=>(int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
-        'totalTalents'=>(int)$db->query("SELECT COUNT(*) FROM talent_profiles")->fetchColumn(),
-        'totalClients'=>(int)$db->query("SELECT COUNT(*) FROM client_profiles")->fetchColumn(),
-        'totalJobs'=>(int)$db->query("SELECT COUNT(*) FROM jobs")->fetchColumn(),
-        'totalApps'=>(int)$db->query("SELECT COUNT(*) FROM job_applications")->fetchColumn(),
-        'totalCrewCalls'=>(int)$db->query("SELECT COUNT(*) FROM crew_calls")->fetchColumn(),
+        // Legacy flat keys (kept for backwards compatibility)
+        'totalUsers'    =>$totalUsers,
+        'totalTalents'  =>$totalTalents,
+        'totalClients'  =>$totalClients,
+        'totalJobs'     =>$totalJobs,
+        'totalApps'     =>$totalApps,
+        'totalCrewCalls'=>$totalCrewCalls,
+        // Nested keys expected by AdminPortalPage.tsx
+        'counts'=>[
+            'users'       =>$totalUsers,
+            'talents'     =>$totalTalents,
+            'media'       =>$totalMedia,
+            'jobs'        =>$totalJobs,
+            'applications'=>$totalApps,
+        ],
+        'roles'     =>$roles,
+        'jobStatuses'=>['open'=>$openJobs,'closed'=>$closedJobs],
+        'dbStatus'      =>'connected',
+        'storageEngine' =>'MySQL (Bluehost)',
+        'lastSyncedAt'  =>date('c'),
     ]]);
 }
 
@@ -363,6 +401,48 @@ if($method==='GET'&&$route==='/admin/export'){
         'jobApplications'=>$db->query("SELECT * FROM job_applications")->fetchAll(),
         'crewCalls'=>$db->query("SELECT * FROM crew_calls")->fetchAll(),
     ]]);
+}
+
+// GET /talents  — List with search, category filter, and pagination
+if($method==='GET'&&$route==='/talents'){
+    $db=getDB();
+    $sql="SELECT tp.*, u.email, u.phone_number FROM talent_profiles tp LEFT JOIN users u ON tp.user_id=u.id WHERE 1=1";
+    $p=[];
+    if(!empty($_GET['category'])&&$_GET['category']!=='all'){
+        $sql.=" AND tp.category=?"; $p[]=$_GET['category'];
+    }
+    if(!empty($_GET['query'])){
+        $q='%'.$_GET['query'].'%';
+        $sql.=" AND (tp.full_name LIKE ? OR tp.category LIKE ? OR tp.tagline LIKE ? OR tp.bio LIKE ? OR tp.location LIKE ?)";
+        array_push($p,$q,$q,$q,$q,$q);
+    }
+    if(!empty($_GET['location'])&&$_GET['location']!=='all'){
+        $sql.=" AND tp.location LIKE ?"; $p[]='%'.$_GET['location'].'%';
+    }
+    if(!empty($_GET['union_status'])&&$_GET['union_status']!=='all'){
+        $sql.=" AND tp.union_status=?"; $p[]=$_GET['union_status'];
+    }
+    if(!empty($_GET['min_rate'])){
+        $sql.=" AND tp.day_rate>=?"; $p[]=(float)$_GET['min_rate'];
+    }
+    if(!empty($_GET['max_rate'])){
+        $sql.=" AND tp.day_rate<=?"; $p[]=(float)$_GET['max_rate'];
+    }
+    if(!empty($_GET['is_available'])&&$_GET['is_available']==='true'){
+        $sql.=" AND tp.is_available=1";
+    }
+    // Count total for pagination
+    $countSql = preg_replace('/^SELECT tp\.\*, u\.email, u\.phone_number/','SELECT COUNT(*)',$sql);
+    $cst=$db->prepare($countSql); $cst->execute($p);
+    $total=(int)$cst->fetchColumn();
+    $limit  = max(1,min(50,(int)($_GET['limit']??9)));
+    $page   = max(1,(int)($_GET['page']??1));
+    $offset = ($page-1)*$limit;
+    $sql.=" ORDER BY tp.featured DESC, tp.rating DESC, tp.created_at DESC LIMIT $limit OFFSET $offset";
+    $st=$db->prepare($sql); $st->execute($p);
+    $talents=$st->fetchAll();
+    $totalPages=max(1,(int)ceil($total/$limit));
+    jsonResponse(['success'=>true,'talents'=>$talents,'pagination'=>['total_items'=>$total,'total_pages'=>$totalPages,'current_page'=>$page,'per_page'=>$limit]]);
 }
 
 // GET /talents/{id}
