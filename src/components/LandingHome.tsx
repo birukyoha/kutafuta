@@ -14,7 +14,7 @@ export const LandingHome: React.FC<LandingHomeProps> = ({ onNavigate, currentUse
   const currentBgImage = bgImageUrl || '/images/cinematic_film_set_1785254501370.jpg';
 
   return (
-    <div 
+    <div
       className={`relative min-h-[calc(100vh-64px)] ${isDaylight ? 'daylight-bg bg-[#edf2f7] text-[#0f172a]' : 'bg-[#181a20] text-[#f8f7f4]'} font-['Inter',sans-serif] selection:bg-[#ff3e00] selection:text-[#0b0b0d] py-6 sm:py-12 px-3 sm:px-6 lg:px-8 bg-cover bg-center bg-fixed transition-colors duration-300 w-full max-w-full overflow-hidden`}
       style={{
         backgroundImage: isDaylight
@@ -23,7 +23,7 @@ export const LandingHome: React.FC<LandingHomeProps> = ({ onNavigate, currentUse
       }}
     >
       <div className="relative z-10 max-w-6xl mx-auto space-y-12 sm:space-y-20">
-        
+
         {/* HERO SECTION */}
         <section className="space-y-6 sm:space-y-8 pt-2 sm:pt-8 text-center max-w-4xl mx-auto px-1 sm:px-4">
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${isDaylight ? 'bg-white border-[#cbd5e1] shadow-sm' : 'bg-[#111114] border-[#f8f7f4]/10'} border rounded-full font-mono-code text-[0.62rem] sm:text-[0.65rem] uppercase tracking-widest text-[#ff3e00] max-w-full truncate`}>
@@ -136,7 +136,7 @@ export const LandingHome: React.FC<LandingHomeProps> = ({ onNavigate, currentUse
               [ 02 // WORKFLOW ENGINE ]
             </span>
             <h2 className={`font-syne text-2xl font-bold uppercase tracking-tight ${isDaylight ? 'text-[#0f172a]' : 'text-[#f8f7f4]'} mt-1`}>
-              How Fikare Teseto Operates
+              How Kutafuta Talent Operates
             </h2>
           </div>
 
