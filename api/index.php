@@ -2,10 +2,38 @@
 /**
  * KutafutaTalent Primary PHP Backend Controller & API Router
  * cPanel Shared Hosting Architecture (Apache / PHP / MySQL)
- * Fully aligned with Express server endpoints for production cPanel deployment.
  */
 
-require_once __DIR__ . '/config.php';
+// ── SAFETY NET: catch PHP fatal/parse errors and return JSON (not Apache 500 page) ──
+ob_start();
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        ob_clean();
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'error'   => 'PHP Fatal Error',
+            'message' => $err['message'],
+            'file'    => basename($err['file']),
+            'line'    => $err['line']
+        ]);
+    } else {
+        ob_end_flush();
+    }
+});
+error_reporting(0);
+
+// Set JSON content-type early so any output is parseable
+header('Content-Type: application/json; charset=utf-8');
+
+try {
+    require_once __DIR__ . '/config.php';
+} catch (Throwable $bootErr) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Boot error: ' . $bootErr->getMessage()]);
+    exit;
+}
 
 // Enable CORS Headers
 header("Access-Control-Allow-Origin: *");
@@ -660,6 +688,13 @@ try {
     // Fallback 404 for unknown routes
     sendJsonResponse(['error' => 'API endpoint not found: ' . $path], 404);
 
-} catch (Exception $e) {
-    sendJsonResponse(['error' => 'Server error: ' . $e->getMessage()], 500);
+} catch (Throwable $e) {
+    // Catches both Exception AND Error subclasses (TypeError, PDOException etc.)
+    http_response_code(500);
+    echo json_encode([
+        'error'   => 'Server error',
+        'message' => $e->getMessage(),
+        'type'    => get_class($e)
+    ]);
+    exit;
 }
