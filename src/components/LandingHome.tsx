@@ -83,7 +83,7 @@ export const LandingHome: React.FC<LandingHomeProps> = ({ onNavigate, currentUse
                 Curated Excellence
               </h3>
               <p className={`text-[0.7rem] ${isDaylight ? 'text-[#475569]' : 'text-[#f8f7f4]/60'} uppercase leading-relaxed`}>
-                Only verified film professionals with vetted showreels, confirmed gear packages, and certified industry experience. No unverified spam.
+                Inside Kutafutatalent You will find Only verified film professionals with vetted showreels, confirmed gear packages, and certified industry experience. No unverified spam.
               </p>
             </div>
 
