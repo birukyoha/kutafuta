@@ -21,7 +21,7 @@ if (file_exists(__DIR__ . '/db_config.php')) {
 if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
 if (!defined('DB_NAME')) define('DB_NAME', 'xpbvymmy_Kutafutatalent');  // Bluehost DB name
 if (!defined('DB_USER')) define('DB_USER', 'xpbvymmy_dbuser');           // Bluehost DB user
-if (!defined('DB_PASS')) define('DB_PASS', 'YOUR_STRONG_PASSWORD_HERE'); // Your chosen password in cPanel MySQL
+if (!defined('DB_PASS')) define('DB_PASS', 'Proton@kutafuta2026'); // Your chosen password in cPanel MySQL
 
 // ============================================================
 // CORS & Headers
@@ -60,68 +60,66 @@ function getDB() {
 }
 
 function createTablesIfNeeded(PDO $db) {
-    $db->exec("
-        CREATE TABLE IF NOT EXISTS users (
-            id VARCHAR(32) PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL,
-            full_name VARCHAR(255), role ENUM('talent','client','admin') NOT NULL DEFAULT 'talent',
-            password_hash VARCHAR(255), avatar_url TEXT, phone_number VARCHAR(64),
-            city_country VARCHAR(255), created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(32) PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL,
+        full_name VARCHAR(255), role ENUM('talent','client','admin') NOT NULL DEFAULT 'talent',
+        password_hash VARCHAR(255), avatar_url TEXT, phone_number VARCHAR(64),
+        city_country VARCHAR(255), created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS talent_profiles (
-            id VARCHAR(32) PRIMARY KEY, user_id VARCHAR(32),
-            full_name VARCHAR(255), stage_name VARCHAR(255), avatar_url TEXT,
-            category VARCHAR(128), tagline VARCHAR(512), bio TEXT, location VARCHAR(255),
-            day_rate DECIMAL(10,2) DEFAULT 0, hourly_rate DECIMAL(10,2) DEFAULT 0,
-            years_experience INT DEFAULT 0, union_status VARCHAR(64),
-            equipment_list TEXT, languages VARCHAR(512),
-            is_available TINYINT(1) DEFAULT 1, rating DECIMAL(3,1) DEFAULT 5.0,
-            review_count INT DEFAULT 0, featured TINYINT(1) DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS talent_profiles (
+        id VARCHAR(32) PRIMARY KEY, user_id VARCHAR(32),
+        full_name VARCHAR(255), stage_name VARCHAR(255), avatar_url TEXT,
+        category VARCHAR(128), tagline VARCHAR(512), bio TEXT, location VARCHAR(255),
+        day_rate DECIMAL(10,2) DEFAULT 0, hourly_rate DECIMAL(10,2) DEFAULT 0,
+        years_experience INT DEFAULT 0, union_status VARCHAR(64),
+        equipment_list TEXT, languages VARCHAR(512),
+        is_available TINYINT(1) DEFAULT 1, rating DECIMAL(3,1) DEFAULT 5.0,
+        review_count INT DEFAULT 0, featured TINYINT(1) DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS client_profiles (
-            id VARCHAR(32) PRIMARY KEY, user_id VARCHAR(32),
-            company_name VARCHAR(255), company_type VARCHAR(128),
-            location VARCHAR(255), website VARCHAR(512), bio TEXT,
-            verified TINYINT(1) DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS client_profiles (
+        id VARCHAR(32) PRIMARY KEY, user_id VARCHAR(32),
+        company_name VARCHAR(255), company_type VARCHAR(128),
+        location VARCHAR(255), website VARCHAR(512), bio TEXT,
+        verified TINYINT(1) DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS jobs (
-            id VARCHAR(32) PRIMARY KEY, client_id VARCHAR(32), client_name VARCHAR(255),
-            title VARCHAR(512), department VARCHAR(128), project_type VARCHAR(128),
-            location VARCHAR(255), budget_min DECIMAL(10,2) DEFAULT 0,
-            budget_max DECIMAL(10,2) DEFAULT 0,
-            status ENUM('open','closed','filled','draft') DEFAULT 'open',
-            description TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS jobs (
+        id VARCHAR(32) PRIMARY KEY, client_id VARCHAR(32), client_name VARCHAR(255),
+        title VARCHAR(512), department VARCHAR(128), project_type VARCHAR(128),
+        location VARCHAR(255), budget_min DECIMAL(10,2) DEFAULT 0,
+        budget_max DECIMAL(10,2) DEFAULT 0,
+        status ENUM('open','closed','filled','draft') DEFAULT 'open',
+        description TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS job_applications (
-            id VARCHAR(32) PRIMARY KEY, job_id VARCHAR(32), talent_id VARCHAR(32),
-            talent_name VARCHAR(255), bid_rate DECIMAL(10,2) DEFAULT 0,
-            status ENUM('applied','shortlisted','hired','rejected') DEFAULT 'applied',
-            cover_note TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS job_applications (
+        id VARCHAR(32) PRIMARY KEY, job_id VARCHAR(32), talent_id VARCHAR(32),
+        talent_name VARCHAR(255), bid_rate DECIMAL(10,2) DEFAULT 0,
+        status ENUM('applied','shortlisted','hired','rejected') DEFAULT 'applied',
+        cover_note TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS crew_calls (
-            id VARCHAR(32) PRIMARY KEY, job_id VARCHAR(32), client_id VARCHAR(32),
-            producer_name VARCHAR(255), call_title VARCHAR(512), department VARCHAR(128),
-            project_type VARCHAR(128), crew_positions_needed INT DEFAULT 1,
-            budget_range VARCHAR(255), location VARCHAR(255), shoot_dates VARCHAR(255),
-            status ENUM('active','closed','draft') DEFAULT 'active',
-            call_sheet_notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS crew_calls (
+        id VARCHAR(32) PRIMARY KEY, job_id VARCHAR(32), client_id VARCHAR(32),
+        producer_name VARCHAR(255), call_title VARCHAR(512), department VARCHAR(128),
+        project_type VARCHAR(128), crew_positions_needed INT DEFAULT 1,
+        budget_range VARCHAR(255), location VARCHAR(255), shoot_dates VARCHAR(255),
+        status ENUM('active','closed','draft') DEFAULT 'active',
+        call_sheet_notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS talent_media (
-            id VARCHAR(32) PRIMARY KEY, talent_profile_id VARCHAR(32),
-            title VARCHAR(512), media_type VARCHAR(64), file_url TEXT,
-            thumbnail_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    $db->exec("CREATE TABLE IF NOT EXISTS talent_media (
+        id VARCHAR(32) PRIMARY KEY, talent_profile_id VARCHAR(32),
+        title VARCHAR(512), media_type VARCHAR(64), file_url TEXT,
+        thumbnail_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        CREATE TABLE IF NOT EXISTS id_counters (
-            prefix VARCHAR(32) PRIMARY KEY, next_val INT NOT NULL DEFAULT 1
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
+    $db->exec("CREATE TABLE IF NOT EXISTS id_counters (
+        prefix VARCHAR(32) PRIMARY KEY, next_val INT NOT NULL DEFAULT 1
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
     $db->exec("INSERT IGNORE INTO id_counters (prefix, next_val) VALUES
         ('user-t',1),('user-c',1),('user-a',1),
@@ -164,14 +162,14 @@ function seedDatabase(PDO $db) {
     $db->exec("INSERT IGNORE INTO crew_calls (id,job_id,client_id,producer_name,call_title,department,project_type,crew_positions_needed,budget_range,location,shoot_dates,status,created_at) VALUES
         ('crewcall-1','job-1','client-1','Apex Media Studios','Lead Director of Photography - Sci-Fi Short','cinematography','Commercial',1,'\$1,800 - \$2,500 / day','Los Angeles, CA','Aug 15 - Aug 28, 2026','active','2025-02-12');");
 
-    $db->exec("UPDATE id_counters SET next_val=5 WHERE prefix='user-t';
-               UPDATE id_counters SET next_val=3 WHERE prefix='user-c';
-               UPDATE id_counters SET next_val=2 WHERE prefix='user-a';
-               UPDATE id_counters SET next_val=5 WHERE prefix='talent-';
-               UPDATE id_counters SET next_val=3 WHERE prefix='client-';
-               UPDATE id_counters SET next_val=4 WHERE prefix='job-';
-               UPDATE id_counters SET next_val=3 WHERE prefix='app-';
-               UPDATE id_counters SET next_val=2 WHERE prefix='crewcall-';");
+    $db->exec("UPDATE id_counters SET next_val=5 WHERE prefix='user-t'");
+    $db->exec("UPDATE id_counters SET next_val=3 WHERE prefix='user-c'");
+    $db->exec("UPDATE id_counters SET next_val=2 WHERE prefix='user-a'");
+    $db->exec("UPDATE id_counters SET next_val=5 WHERE prefix='talent-'");
+    $db->exec("UPDATE id_counters SET next_val=3 WHERE prefix='client-'");
+    $db->exec("UPDATE id_counters SET next_val=4 WHERE prefix='job-'");
+    $db->exec("UPDATE id_counters SET next_val=3 WHERE prefix='app-'");
+    $db->exec("UPDATE id_counters SET next_val=2 WHERE prefix='crewcall-'");
 }
 
 // ============================================================

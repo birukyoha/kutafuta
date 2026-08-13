@@ -8,6 +8,7 @@
   RewriteEngine On
 
   # 1. Route API requests to PHP Router Controller
+  RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^api/(.*)$ api/index.php [QSA,L]
 
   # 2. Redirect all non-file/non-directory client SPA routes to index.html

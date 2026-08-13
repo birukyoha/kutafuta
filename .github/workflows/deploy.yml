@@ -27,6 +27,7 @@ jobs:
         run: |
           # Copy root-level PHP/config files into the dist folder
           cp api.php dist/api.php
+          cp db_config.php dist/db_config.php
           cp .htaccess dist/.htaccess
           # Copy the api/ PHP folder (config.php + index.php)
           cp -r api/ dist/api/
