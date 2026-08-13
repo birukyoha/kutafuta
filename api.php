@@ -1,4 +1,16 @@
 <?php
+// Global Exception & Fatal Error Trap
+ob_start();
+register_shutdown_function(function() {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        ob_clean();
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'error' => 'Fatal PHP Error: ' . $err['message'] . ' in ' . basename($err['file']) . ':' . $err['line']]);
+    }
+});
+
 // ============================================================
 // KutafutaTalent — Bluehost MySQL PHP API Backend
 // File: /public_html/api.php  (upload to your cPanel public_html)
@@ -127,6 +139,20 @@ function createTablesIfNeeded(PDO $db) {
         ('job-',1),('app-',1),('crewcall-',1),('media-',1);");
 
     $count = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    
+    // Migration check for missing columns on existing tables
+    try {
+        $cols = $db->query("SHOW COLUMNS FROM talent_profiles")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('featured', $cols))     $db->exec("ALTER TABLE talent_profiles ADD COLUMN featured TINYINT(1) DEFAULT 0");
+        if (!in_array('rating', $cols))       $db->exec("ALTER TABLE talent_profiles ADD COLUMN rating DECIMAL(3,1) DEFAULT 5.0");
+        if (!in_array('review_count', $cols)) $db->exec("ALTER TABLE talent_profiles ADD COLUMN review_count INT DEFAULT 0");
+        if (!in_array('union_status', $cols)) $db->exec("ALTER TABLE talent_profiles ADD COLUMN union_status VARCHAR(64) DEFAULT 'non_union'");
+        if (!in_array('hourly_rate', $cols)) $db->exec("ALTER TABLE talent_profiles ADD COLUMN hourly_rate DECIMAL(10,2) DEFAULT 0");
+        if (!in_array('stage_name', $cols))  $db->exec("ALTER TABLE talent_profiles ADD COLUMN stage_name VARCHAR(255)");
+        if (!in_array('equipment_list', $cols)) $db->exec("ALTER TABLE talent_profiles ADD COLUMN equipment_list TEXT");
+        if (!in_array('languages', $cols))   $db->exec("ALTER TABLE talent_profiles ADD COLUMN languages VARCHAR(512)");
+    } catch (PDOException $e) {}
+
     if ($count == 0) seedDatabase($db);
 }
 
@@ -175,6 +201,10 @@ function seedDatabase(PDO $db) {
 // ============================================================
 // Helpers
 // ============================================================
+} catch (Throwable $e) {
+    jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+}
+
 function jsonResponse(array $d, int $c = 200) { http_response_code($c); echo json_encode($d, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
 function jsonError(string $msg, int $c = 400) { jsonResponse(['success'=>false,'error'=>$msg], $c); }
 function getBody(): array { return json_decode(file_get_contents('php://input'), true) ?: []; }
@@ -220,6 +250,7 @@ function requireAdmin(): void {
 
 // ============================================================
 // Route Resolution
+try {
 // ============================================================
 $method = $_SERVER['REQUEST_METHOD'];
 $uri    = parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH);
