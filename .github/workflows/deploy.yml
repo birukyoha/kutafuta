@@ -25,14 +25,10 @@ jobs:
 
       - name: Copy PHP backend & config files into dist/
         run: |
-          # Copy root-level PHP/config files into the dist folder
+          # Copy root-level PHP backend, db_config, and htaccess into dist folder
           cp api.php dist/api.php
           cp db_config.php dist/db_config.php
           cp .htaccess dist/.htaccess
-          # Copy the api/ PHP folder (config.php + index.php)
-          cp -r api/ dist/api/
-          # Copy db_config.php.example for reference (actual credentials stay in api/config.php)
-          cp db_config.php.example dist/db_config.php.example
 
       - name: Deploy dist/ + PHP backend to Bluehost via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
