@@ -1,3 +1,6 @@
+# Enable PATH_INFO trailing path routing for PHP scripts (e.g. /api.php/talents)
+AcceptPathInfo On
+
 # ==============================================================================
 # Apache Rewrite Rules for KutafutaTalent Single Page Application (SPA) & PHP API
 # cPanel Shared Hosting Deployment Configuration
@@ -7,11 +10,7 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # 1. Route API requests to PHP Router Controller
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
-
-  # 2. Redirect all non-file/non-directory client SPA routes to index.html
+  # Redirect all non-file/non-directory client SPA routes to index.html
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
@@ -23,8 +22,6 @@
 </IfModule>
 
 # Security Headers
-# Add this at the bottom of your existing .htaccess file
-
 # Prevent caching of index.html so updates load instantly
 <IfModule mod_headers.c>
     <FilesMatch "index\.html$">
