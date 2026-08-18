@@ -204,9 +204,7 @@ function seedDatabase(PDO $db) {
 // ============================================================
 // Helpers
 // ============================================================
-} catch (Throwable $e) {
-    jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
-}
+
 
 function jsonResponse(array $d, int $c = 200) { http_response_code($c); echo json_encode($d, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
 function jsonError(string $msg, int $c = 400) { jsonResponse(['success'=>false,'error'=>$msg], $c); }
@@ -551,3 +549,7 @@ if($method==='GET'&&$route==='/talent-directory'){
 }
 
 jsonError("Route not found: [$method] $route", 404);
+
+} catch (Throwable $e) {
+    jsonResponse(['success' => false, 'error' => 'Server Error: ' . $e->getMessage()], 500);
+}
