@@ -203,68 +203,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsSubmitting(false);
 
       if (response.ok && data.user) {
-        const isAdmin = selectedRole === 'admin' || loginEmail.toLowerCase().includes('admin') || loginPassword === 'admin123' || loginPassword === 'cinecraft2026';
-        if (isAdmin) {
-          data.user.role = 'admin';
-          data.user.full_name = 'Database Administrator';
-          sessionStorage.setItem('cinecraft_admin_token', 'cinecraft_admin_secret_key_2026');
-          sessionStorage.setItem('cinecraft_admin_user', JSON.stringify(data.user));
-          if (!data.profile) {
-            data.profile = { id: 'admin-1', full_name: 'Database Administrator' };
-          }
-        }
+        // Role comes ONLY from data.user.role as returned by the server.
+        // No client-side role override, no password pattern matching, no email text inference.
         if (data.token) {
           localStorage.setItem('cinecraft_token', data.token);
         }
-        onAuthSuccess({ user: data.user, profile: data.profile || { id: 'admin-1', full_name: 'Database Administrator' } });
+        onAuthSuccess({ user: data.user, profile: data.profile || null });
         onClose();
       } else {
-        const isAdmin = selectedRole === 'admin' || loginEmail.toLowerCase().includes('admin');
-        const isTalent = !isAdmin && (selectedRole === 'talent' || loginEmail.includes('talent'));
-        const userRole: UserRole = isAdmin ? 'admin' : (isTalent ? 'talent' : 'client');
-
-        const emailPrefix = loginEmail ? loginEmail.split('@')[0].replace(/[._-]/g, ' ') : '';
-        const derivedName = emailPrefix ? emailPrefix.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '';
-        const displayName = fullName || derivedName || (isAdmin ? 'Database Administrator' : (isTalent ? 'Creative Talent' : 'Agency Client'));
-
-        if (isAdmin) {
-          sessionStorage.setItem('cinecraft_admin_token', 'cinecraft_admin_secret_key_2026');
-          sessionStorage.setItem('cinecraft_admin_user', JSON.stringify({
-            id: 'user-a1',
-            email: loginEmail || 'admin@kutafuta.com',
-            role: 'admin',
-            full_name: 'Database Administrator'
-          }));
-        }
-
-        const userObj: User = {
-          id: isAdmin ? 'user-a1' : `user-${Date.now()}`,
-          email: loginEmail,
-          role: userRole,
-          full_name: displayName,
-          avatar_url: avatarUrl.trim() || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}`,
-        };
-
-        const profileObj = isAdmin
-          ? { id: 'admin-1', full_name: 'Database Administrator' }
-          : (isTalent
-            ? {
-                id: `talent-${Date.now()}`,
-                full_name: displayName,
-                tagline: 'Verified KutafutaTalent Member',
-                category: 'cinematography',
-                day_rate: Number(dayRate) || 1200,
-                location: cityCountry || 'Los Angeles, CA',
-              }
-            : {
-                id: `client-${Date.now()}`,
-                company_name: displayName,
-                company_type: companyType || 'Production House',
-                location: cityCountry || 'Los Angeles, CA',
-              });
-
-        onAuthSuccess({ user: userObj, profile: profileObj });
-        onClose();
+        // API returned an error (404 no account, 401 wrong password, etc.)
+        // Never fabricate a user — surface the real server error to the user.
+        const errorText = data?.error || data?.message || 'Login failed. Please check your email and password.';
+        setErrorMsg(errorText);
       }
     } catch (err: any) {
       console.error('Login error:', err);
