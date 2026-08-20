@@ -277,12 +277,14 @@ if($method==='POST'&&$route==='/auth/register'){
     $uid=nextId($db,prefixFor('users',$b));
     $pid=$role!=='admin'?nextId($db,prefixFor($role==='talent'?'talentProfiles':'clientProfiles')):null;
     $hash=password_hash($pass,PASSWORD_BCRYPT);
+    $fullName=trim($b['full_name']??$b['name']??'');
+    $category=trim($b['category']??$b['primary_department']??'cinematography');
     $db->prepare("INSERT INTO users(id,email,full_name,role,password_hash,avatar_url,phone_number,city_country) VALUES(?,?,?,?,?,?,?,?)")
-       ->execute([$uid,$email,$b['full_name']??'',$role,$hash,$b['avatar_url']??'',$b['phone_number']??'',$b['city_country']??'']);
+       ->execute([$uid,$email,$fullName,$role,$hash,$b['avatar_url']??'',$b['phone_number']??'',$b['city_country']??'']);
     $profile=null;
     if($role==='talent'&&$pid){
         $db->prepare("INSERT INTO talent_profiles(id,user_id,full_name,avatar_url,category,tagline,bio,location,day_rate,hourly_rate,union_status,equipment_list,is_available) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,1)")
-           ->execute([$pid,$uid,$b['full_name']??'',$b['avatar_url']??'',$b['category']??'',$b['tagline']??'',$b['bio']??'KutafutaTalent verified profile.',$b['city_country']??'',$b['day_rate']??1200,$b['hourly_rate']??150,$b['union_status']??'non_union',$b['equipment_list']??'']);
+           ->execute([$pid,$uid,$fullName,$b['avatar_url']??'',$category,$b['tagline']??'',$b['bio']??'KutafutaTalent verified profile.',$b['city_country']??'',$b['day_rate']??1200,$b['hourly_rate']??150,$b['union_status']??'non_union',$b['equipment_list']??'']);
         $profile=$db->query("SELECT * FROM talent_profiles WHERE id=".$db->quote($pid))->fetch();
     } elseif($role==='client'&&$pid){
         $db->prepare("INSERT INTO client_profiles(id,user_id,company_name,company_type,location,verified) VALUES(?,?,?,?,?,1)")

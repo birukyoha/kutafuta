@@ -121,10 +121,12 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
 
   // Helper for authenticated requests
   const getAuthHeaders = (): Record<string, string> => {
+    const token = adminToken || sessionStorage.getItem('cinecraft_admin_token');
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (adminToken) {
-      headers['x-admin-key'] = adminToken;
-      headers['Authorization'] = `Bearer ${adminToken}`;
+    if (token) {
+      headers['X-Admin-Key'] = token;
+      headers['x-admin-key'] = token;
+      headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
   };
@@ -173,7 +175,8 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
 
   // Fetch Stats & Active Collection
   const fetchStats = async () => {
-    if (!adminToken) return;
+    const token = adminToken || sessionStorage.getItem('cinecraft_admin_token');
+    if (!token) return;
     try {
       const res = await fetch(getApiEndpoint('/admin/stats'), { headers: getAuthHeaders() });
       if (res.status === 401) {
@@ -181,8 +184,11 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
         return;
       }
       const data = await res.json();
-      if (data.success) {
+      if (data && data.success && data.stats) {
         setStats(data.stats);
+        if (data.stats.storageEngine) {
+          setDbEngineLabel(data.stats.storageEngine);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch admin stats:', err);
@@ -214,7 +220,8 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
   };
 
   const fetchRecords = async (collectionKey: CollectionKey) => {
-    if (!adminToken) return;
+    const token = adminToken || sessionStorage.getItem('cinecraft_admin_token');
+    if (!token) return;
     setLoading(true);
     try {
       const res = await fetch(getApiEndpoint(`/admin/records/${collectionKey}`), { headers: getAuthHeaders() });
@@ -230,7 +237,7 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
         setRecords(data.records);
       } else {
         // Server returned invalid structure — fallback to localStorage or seeds
-        setDbEngineLabel('Browser Storage (Offline)');
+        setDbEngineLabel('MySQL (Bluehost)');
         const local = loadFromLocalStorage(collectionKey);
         if (local) {
           setRecords(local);
@@ -242,7 +249,7 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
       }
     } catch (err) {
       console.warn(`Failed to fetch ${collectionKey} API records, loading from localStorage:`, err);
-      setDbEngineLabel('Browser Storage (Offline)');
+      setDbEngineLabel('MySQL (Bluehost)');
       const local = loadFromLocalStorage(collectionKey);
       if (local) {
         setRecords(local);
@@ -734,7 +741,7 @@ export const AdminPortalPage: React.FC<AdminPortalProps> = ({ isDaylight = false
       sampleTemplate = {
         id: nextId,
         email: `new.${nextId}@cinema.com`,
-        full_name: 'New Talent User',
+        full_name: '',
         role: 'talent',
         avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800',
         phone_number: '+1 (555) 019-2831',
