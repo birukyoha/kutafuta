@@ -73,7 +73,10 @@ export default function TalentDashboardPage({ currentUser, onNavigate }) {
 
   const fetchDashboardData = () => {
     setLoading(true);
-    const talentId = currentUser?.profile?.id || 'talent-1';
+    const talentId = currentUser?.profile?.id || currentUser?.user?.id || currentUser?.id;
+    console.log('[DEBUG] fetchDashboardData currentUser:', currentUser);
+    console.log('[DEBUG] fetchDashboardData talentId:', talentId);
+    console.log('[DEBUG] fetchDashboardData URL:', getApiEndpoint(`/talents/${talentId}`));
 
     const defaultProfile = {
       id: talentId,
@@ -115,7 +118,7 @@ export default function TalentDashboardPage({ currentUser, onNavigate }) {
 
   const fetchAnalyticsData = (range) => {
     setLoadingAnalytics(true);
-    const talentId = currentUser?.profile?.id || 'talent-1';
+    const talentId = currentUser?.profile?.id || currentUser?.user?.id || currentUser?.id;
 
     fetch(getApiEndpoint(`/talents/${talentId}/analytics?range=${range}`))
       .then(res => res.json())
